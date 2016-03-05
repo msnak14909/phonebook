@@ -16,9 +16,9 @@ phonebook_orig: $(SRCS_common) phonebook_orig.c phonebook_orig.h
 phonebook_opt: $(SRCS_common) phonebook_opt.c phonebook_opt.h
 	$(CC) $(CFLAGS_common) $(CFLAGS_opt) \
 		-DIMPL="\"$@.h\"" -o $@ \
-		-DNDEBUG='1'\
 		-DOPT="1" \
 		$(SRCS_common) $@.c
+
 
 run: $(EXEC)
 	echo 3 | sudo tee /proc/sys/vm/drop_caches
@@ -30,8 +30,7 @@ cache-test: $(EXEC)
 		./phonebook_orig
 	perf stat --repeat 100 \
 		-e cache-misses,cache-references,instructions,cycles,branch-misses,branch-instructions \
-		./phonebook_opt
-#2>/dev/null
+		./phonebook_opt 
 orig_perf: $(EXEC)
 	perf record -F 10000 \
 		-g ./phonebook_orig

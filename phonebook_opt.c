@@ -4,7 +4,6 @@
 #include <ctype.h>
 #include "phonebook_opt.h"
 
-
 /* FILL YOUR OWN IMPLEMENTATION HERE! */
 
 /* original version */
@@ -26,7 +25,6 @@ entry *append_orig(char lastName[], entry *e)
     e->pNext = NULL;
     return e;
 }
-
 
 /* opt 1: change the struct size */
 entry *findName_opt1(char lastname[], entry *pHead)
@@ -51,7 +49,7 @@ entry *append_opt1(char lastName[], entry *e)
 
 /* opt 2: change the malloc to memory pool*/
 memPool allocNode;
-unsigned int slotIndx = 0;
+int slotIndx = 0;
 void initMemPool(void)
 {
     unsigned int uIndex;
@@ -59,6 +57,7 @@ void initMemPool(void)
         allocNode.array[uIndex] = (entry*)malloc(sizeof(entry));
         allocNode.nodeCounter++;
     }
+
 }
 
 entry *mempoolalloc(void)
@@ -81,7 +80,7 @@ void mempoolfree(void)
     }
 }
 
-entry *findName(char lastname[], entry *pHead)
+entry *findName_opt2(char lastname[], entry *pHead)
 {
     while (pHead != NULL) {
         if (strcasecmp(lastname, pHead->lastName) == 0)
@@ -91,7 +90,7 @@ entry *findName(char lastname[], entry *pHead)
     return NULL;
 }
 
-entry *append(char lastName[], entry *e)
+entry *append_opt2(char lastName[], entry *e)
 {
     if((e->pNext = mempoolalloc())==NULL)
         return NULL;
@@ -100,9 +99,42 @@ entry *append(char lastName[], entry *e)
     e->pNext = NULL;
     return e;
 }
+/* opt3 hasing function */
 
+int hash(char *str)
+{
+    unsigned long hash = 5381;
+    while (*str++)
+        hash = ((hash << 5) + hash) + *str; /* hash * 33 + c */
+    return hash % HASH_TABLE_SIZE;
+}
+entry *append(char lastName[], entry **e)
+{
+    int key = hash(lastName);
+    entry *cur;
+    if(!(cur = mempoolalloc())) return NULL;
 
+    memcpy(cur->lastName, lastName, sizeof(cur->lastName));
 
+    if(e[key]) {
+        cur->pNext = e[key]->pNext;
+        e[key]->pNext = cur;
+    } else {
+        cur->pNext = NULL;
+        e[key]=cur;
+    }
+    return cur;
+}
+entry *findName(char lastName[], entry **e)
+{
+    unsigned long key = hash(lastName);
+    entry *t = e[key];
 
+    while(t && strcasecmp(lastName, t->lastName)) {
+        t = t->pNext;
+    };
+    //if(t) printf("founded: %s\n", t->lastName);
+    return t ? t : NULL;
+}
 
 
