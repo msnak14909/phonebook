@@ -4,7 +4,6 @@
 #include <ctype.h>
 #include "phonebook_opt.h"
 
-
 /* FILL YOUR OWN IMPLEMENTATION HERE! */
 
 /* original version */
@@ -26,7 +25,6 @@ entry *append_orig(char lastName[], entry *e)
     e->pNext = NULL;
     return e;
 }
-
 
 /* opt 1: change the struct size */
 entry *findName_opt1(char lastname[], entry *pHead)
@@ -81,7 +79,7 @@ void mempoolfree(void)
     }
 }
 
-entry *findName(char lastname[], entry *pHead)
+entry *findName_opt2(char lastname[], entry *pHead)
 {
     while (pHead != NULL) {
         if (strcasecmp(lastname, pHead->lastName) == 0)
@@ -91,7 +89,7 @@ entry *findName(char lastname[], entry *pHead)
     return NULL;
 }
 
-entry *append(char lastName[], entry *e)
+entry *append_opt2(char lastName[], entry *e)
 {
     if((e->pNext = mempoolalloc())==NULL)
         return NULL;
@@ -100,9 +98,41 @@ entry *append(char lastName[], entry *e)
     e->pNext = NULL;
     return e;
 }
+/* opt3 hasing function */
 
-
-
-
-
-
+unsigned long hash(char *str)
+{
+    unsigned long hash = 5381;
+    int c;
+    while ((c = *str++)!=0)
+        hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
+    return hash;
+}
+entry *append(char lastName[], entry **e)
+{
+    unsigned long key = hash(lastName) % HASH_TABLE_SIZE;
+    entry *cur, *t;
+    if(!e[key]) {
+        if(!(e[key] = mempoolalloc()))
+            return NULL;
+        memcpy(e[key]->lastName, lastName, sizeof(e[key]->lastName));
+        e[key]->pNext = NULL;
+        return e[key];
+    }
+    cur = mempoolalloc();
+    t = e[key]->pNext;
+    cur->pNext = t;
+    memcpy(cur->lastName, lastName, sizeof(cur->lastName));
+    e[key]->pNext = cur;
+    return cur;
+}
+entry *findName(char lastName[], entry **e)
+{
+    unsigned long key = hash(lastName) % HASH_TABLE_SIZE;
+    entry *t;
+    t = e[key];
+    while(t && strcasecmp(lastName, t->lastName)) {
+        t = t->pNext;
+    };
+    return t ? t : NULL;
+}
