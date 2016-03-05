@@ -36,12 +36,22 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    /* build the entry */
+    /* setting mempool and build the entry*/
+
+#if defined(OPT)
+    initMemPool();
+    entry *pHead, *e;
+    pHead = mempoolalloc();
+    printf("size of entry : %lu bytes\n", sizeof(entry));
+    e = pHead;
+    e->pNext = NULL;
+#else
     entry *pHead, *e;
     pHead = (entry *) malloc(sizeof(entry));
     printf("size of entry : %lu bytes\n", sizeof(entry));
     e = pHead;
     e->pNext = NULL;
+#endif
 
 #if defined(__GNUC__)
     __builtin___clear_cache((char *) pHead, (char *) pHead + sizeof(entry));
@@ -52,7 +62,8 @@ int main(int argc, char *argv[])
             i++;
         line[i - 1] = '\0';
         i = 0;
-        e = append(line, e);
+        if((e = append(line, e))==NULL)
+            break;
     }
     clock_gettime(CLOCK_REALTIME, &end);
     cpu_time1 = diff_in_second(start, end);
@@ -81,18 +92,23 @@ int main(int argc, char *argv[])
 
     FILE *output;
 #if defined(OPT)
-	output = fopen("opt.txt", "a");
-#else 
-	output = fopen("orig.txt", "a");
+    output = fopen("opt.txt", "a");
+#else
+    output = fopen("orig.txt", "a");
+
 #endif
-	fprintf(output, "append() findName() %lf %lf\n", cpu_time1, cpu_time2);
-	fclose(output);
+    fprintf(output, "append() findName() %lf %lf\n", cpu_time1, cpu_time2);
+    fclose(output);
 
     printf("execution time of append() : %lf sec\n", cpu_time1);
     printf("execution time of findName() : %lf sec\n", cpu_time2);
 
+#if defined(OPT)
+    //if (pHead->pNext) free(pHead->pNext);
+    mempoolfree();
+#else
     if (pHead->pNext) free(pHead->pNext);
     free(pHead);
-
+#endif
     return 0;
 }

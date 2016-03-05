@@ -16,6 +16,8 @@ phonebook_orig: $(SRCS_common) phonebook_orig.c phonebook_orig.h
 phonebook_opt: $(SRCS_common) phonebook_opt.c phonebook_opt.h
 	$(CC) $(CFLAGS_common) $(CFLAGS_opt) \
 		-DIMPL="\"$@.h\"" -o $@ \
+		-DNDEBUG='1'\
+		-DOPT="1" \
 		$(SRCS_common) $@.c
 
 run: $(EXEC)
@@ -24,11 +26,29 @@ run: $(EXEC)
 
 cache-test: $(EXEC)
 	perf stat --repeat 100 \
-		-e cache-misses,cache-references,instructions,cycles \
-		./phonebook_orig 2>/dev/null
+		-e cache-misses,cache-references,instructions,cycles,branch-misses,branch-instructions \
+		./phonebook_orig
 	perf stat --repeat 100 \
-		-e cache-misses,cache-references,instructions,cycles \
-		./phonebook_opt 2>/dev/null
+		-e cache-misses,cache-references,instructions,cycles,branch-misses,branch-instructions \
+		./phonebook_opt
+#2>/dev/null
+orig_perf: $(EXEC)
+	perf record -F 10000 \
+		-g ./phonebook_orig
+
+opt_perf: $(EXEC)
+	perf record -F 10000 \
+	-g ./phonebook_opt
+
+ca_orig_perf: $(EXEC)
+	perf record -F 10000 \
+	-e cache-misses,cache-references,instructions,cycles,branch-misses,branch-instructions \
+	-g ./phonebook_orig
+
+ca_opt_perf: $(EXEC)
+	perf record -F 10000 \
+	-e cache-misses,cache-references,instructions,cycles,branch-misses,branch-instructions \
+	-g ./phonebook_opt
 
 output.txt: cache-test calculate
 	./calculate
