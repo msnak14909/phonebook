@@ -3,7 +3,7 @@
 
 #define MAX_LAST_NAME_SIZE 16
 #define MAX_MEMORY_POOL_NODES 500000
-#define HASH_TABLE_SIZE 3079
+#define HASH_TABLE_SIZE  6151
 
 typedef struct __DETAIL_ENTRY {
     char firstName[16];
@@ -28,7 +28,7 @@ typedef struct __MEMORY_POOL {
     int nodeCounter;
 } memPool;
 
-
+entry *HashTable[HASH_TABLE_SIZE];
 entry *findName_opt2(char lastname[], entry *pHead);
 entry *append_opt2(char lastName[], entry *e);
 void initMemPool(void);

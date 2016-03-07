@@ -1,5 +1,6 @@
 CC ?= gcc
-CFLAGS_common ?= -Wall -std=gnu99
+CFLAGS_common ?= -Wall -std=gnu99 -DNDEBUG
+CFLAGS_slot = -DSLOT
 CFLAGS_orig = -O0
 CFLAGS_opt  = -O0
 
@@ -14,7 +15,7 @@ phonebook_orig: $(SRCS_common) phonebook_orig.c phonebook_orig.h
 		$(SRCS_common) $@.c
 
 phonebook_opt: $(SRCS_common) phonebook_opt.c phonebook_opt.h
-	$(CC) $(CFLAGS_common) $(CFLAGS_opt) \
+	$(CC) $(CFLAGS_common) $(CFLAGS_slot) $(CFLAGS_opt) \
 		-DIMPL="\"$@.h\"" -o $@ \
 		-DOPT="1" \
 		$(SRCS_common) $@.c
@@ -55,10 +56,14 @@ output.txt: cache-test calculate
 plot: output.txt
 	gnuplot scripts/runtime.gp
 
+plot_slot: $(EXEC)
+	./phonebook_opt
+	gnuplot scripts/slot.gp
+
 calculate: calculate.c
 	$(CC) $(CFLAGS_common) $^ -o $@
 
 .PHONY: clean
 clean:
 	$(RM) $(EXEC) *.o perf.* \
-	      	calculate orig.txt opt.txt output.txt runtime.png
+	      	calculate orig.txt opt.txt output.txt runtime.png slot.png slot.txt

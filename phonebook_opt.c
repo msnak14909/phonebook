@@ -106,10 +106,11 @@ int hash(char *str)
     unsigned long hash = 5381;
     while (*str++)
         hash = ((hash << 5) + hash) + *str; /* hash * 33 + c */
-    return hash % HASH_TABLE_SIZE;
+    return (int)(hash % HASH_TABLE_SIZE);
 }
 entry *append(char lastName[], entry **e)
 {
+    if(!lastName) return NULL;
     int key = hash(lastName);
     entry *cur;
     if(!(cur = mempoolalloc())) return NULL;
@@ -127,9 +128,9 @@ entry *append(char lastName[], entry **e)
 }
 entry *findName(char lastName[], entry **e)
 {
+    if(!lastName) return NULL;
     unsigned long key = hash(lastName);
     entry *t = e[key];
-
     while(t && strcasecmp(lastName, t->lastName)) {
         t = t->pNext;
     };

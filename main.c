@@ -19,9 +19,7 @@ static double diff_in_second(struct timespec t1, struct timespec t2)
     }
     return (diff.tv_sec + diff.tv_nsec / 1000000000.0);
 }
-#if defined(OPT)
-entry *HashTable[HASH_TABLE_SIZE];
-#endif
+
 int main(int argc, char *argv[])
 {
     FILE *fp;
@@ -38,7 +36,6 @@ int main(int argc, char *argv[])
     }
 
     /* setting mempool and build the entry*/
-
 #if defined(OPT)
     initMemPool();
     printf("size of entry : %lu bytes\n", sizeof(entry));
@@ -60,32 +57,34 @@ int main(int argc, char *argv[])
 #endif
 #endif
 
-
 #if defined(OPT)
+#if defined(SLOT)
+    int hash_slot[HASH_TABLE_SIZE] = {0};
+#endif
     clock_gettime(CLOCK_REALTIME, &start);
-
     while (fgets(line, sizeof(line), fp)) {
         while (line[i] != '\0')
             i++;
         line[i - 1] = '\0';
         i = 0;
+#if defined(SLOT)
+        hash_slot[hash(line)]++;
+#endif
         if(append(line, HashTable)==NULL)
-            break;
+            puts("apped failed, the lastName is not valid.");
     }
     clock_gettime(CLOCK_REALTIME, &end);
     cpu_time1 = diff_in_second(start, end);
 
+
     /* close file as soon as possible */
     fclose(fp);
 
-
     /* the givn last name to find */
     char input[MAX_LAST_NAME_SIZE] = "zyxel";
-
     assert(findName(input, HashTable) &&
            "Did you implement findName() in " IMPL "?");
     assert(0 == strcmp(findName(input, HashTable)->lastName, "zyxel"));
-
 #else
 
     clock_gettime(CLOCK_REALTIME, &start);
@@ -94,8 +93,8 @@ int main(int argc, char *argv[])
             i++;
         line[i - 1] = '\0';
         i = 0;
-        if((e = append(line, e))==NULL)
-            break;
+        if(append(line, e)==NULL)
+            puts("apped failed, the lastName is not valid.");
     }
     clock_gettime(CLOCK_REALTIME, &end);
     cpu_time1 = diff_in_second(start, end);
@@ -111,7 +110,7 @@ int main(int argc, char *argv[])
 
     assert(findName(input, e) &&
            "Did you implement findName() in " IMPL "?");
-    assert(0 == strcmp(findName(input, e)->lastName, "zyxel"));
+    assert(0 == strcmp(findName(input, e)->lastName, "e"));
 #endif
 
 #if defined(OPT)
@@ -138,9 +137,17 @@ int main(int argc, char *argv[])
     FILE *output;
 #if defined(OPT)
     output = fopen("opt.txt", "a");
+#if defined(SLOT)
+    FILE *output2;
+    output2 = fopen("slot.txt", "a");
+    for(int i = 0; i < HASH_TABLE_SIZE; i++) {
+        fprintf(output2, "%d %d\n", i, hash_slot[i]);
+    }
+    fclose(output2);
+#endif
+
 #else
     output = fopen("orig.txt", "a");
-
 #endif
     fprintf(output, "append() findName() %lf %.9lf\n", cpu_time1, cpu_time2);
     fclose(output);
