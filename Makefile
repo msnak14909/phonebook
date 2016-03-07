@@ -1,6 +1,6 @@
 CC ?= gcc
 CFLAGS_common ?= -Wall -std=gnu99 -DNDEBUG
-CFLAGS_slot = -DSLOT
+CFLAGS_slot = #-DSLOT
 CFLAGS_orig = -O0
 CFLAGS_opt  = -O0
 
@@ -23,7 +23,7 @@ phonebook_opt: $(SRCS_common) phonebook_opt.c phonebook_opt.h
 
 run: $(EXEC)
 	echo 3 | sudo tee /proc/sys/vm/drop_caches
-	watch -d -t "./phonebook_orig && echo 3 | sudo tee /proc/sys/vm/drop_caches"
+	watch -d -t "./phonebook_opt && echo 3 | sudo tee /proc/sys/vm/drop_caches"
 
 cache-test: $(EXEC)
 	perf stat --repeat 100 \

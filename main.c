@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
             i++;
         line[i - 1] = '\0';
         i = 0;
-        if(append(line, e)==NULL)
+        if((e = append(line, e))==NULL)
             puts("apped failed, the lastName is not valid.");
     }
     clock_gettime(CLOCK_REALTIME, &end);
@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
 
     assert(findName(input, e) &&
            "Did you implement findName() in " IMPL "?");
-    assert(0 == strcmp(findName(input, e)->lastName, "e"));
+    assert(0 == strcmp(findName(input, e)->lastName, "zyxel"));
 #endif
 
 #if defined(OPT)
